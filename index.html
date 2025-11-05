@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    <title>AI Agent Policy</title>
+    <style>
+        body {
+            font-family: "Quicksand", sans-serif;
+            background-image: url('./hinh-nen-dong-dep-36.gif');
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;     
+            margin: 0 auto;       
+            padding: 18px 24px;
+            background: rgba(255, 255, 255, 0.13); /* nền trắng mờ */
+            border-bottom: 3.2px solid #787676;
+            padding: 18px 0 14px 0;
+            margin-bottom: 18px;
+            box-shadow: 0 8px 32px 0 rgba(31,38,135,0.18);
+            border-radius: 18px;
+            z-index: 100;
+            border-bottom: 1.5px solid #101010;
+            border-top: 1.5px solid rgba(255,255,255,0.18);
+            border-left: 1.5px solid rgba(255,255,255,0.13);
+            border-right: 1.5px solid rgba(255,255,255,0.13);
+            backdrop-filter: blur(6px) saturate(160%);
+            resize: both;
+            overflow: auto;
+            cursor: move;
+            position: absolute; /* Để di chuyển được */
+            left: 50px; /* Vị trí ban đầu */
+            top: 50px;
+        }
+        h1 {
+            text-align: center;
+            color: #2a3b8f;
+        }
+        #chat-box {
+            height: 320px;
+            overflow-y: auto;
+            border-radius: 8px;
+            padding: 12px;
+            background: transparent;
+            margin-bottom: 16px;
+        }
+        .user, .ai {
+            margin: 8px 0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            max-width: 80%;
+            word-break: break-word;
+        }
+        .user {
+            background: transparent;
+            align-self: flex-end;
+            text-align: right;
+            margin-left: auto;
+            color: #12ccec;
+            border-bottom: #101010;
+        }
+        .p{
+            color: #ffffff;
+        }
+        .ai {
+            background: transparent;
+            align-self: flex-start;
+            text-align: left;
+            margin-right: auto;
+            color: #e4f5f8;
+        }
+        .input-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center; /* căn giữa hàng nhập */
+            align-items: center;
+            margin-top: 8px;
+        }
+        #prompt {
+            width: 470px;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #bdbdbd;
+            font-size: 16px;
+            margin: 0 auto;
+            display: block;
+            background: transparent;
+            color: #fff;
+        }
+        #send-btn {
+            background: transparent;
+            border-color:#ffe713;
+            color: #fff;
+            border-radius: 8px;
+            padding: 8px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        #send-btn:disabled {
+            background: #90a4ae;
+            cursor: not-allowed;
+        }
+        #send-btn:hover {
+            background: #ffe713;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(42,59,143,0.18);
+        }
+        .loader {
+            display: inline-block;
+            width: 32px;
+            height: 16px;
+        }
+        .loader span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            margin: 0 2px;
+            background: #2a3b8f;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: loader 1s infinite;
+        }
+        .loader span:nth-child(2) { animation-delay: 0.2s; }
+        .loader span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes loader {
+            0% { opacity: 0.6; transform: translateY(0);}
+            50% { opacity: 1; transform: translateY(-6px);}
+            100% { opacity: 0.6; transform: translateY(0);}
+        }
+        .rainbow-char {
+            animation: rainbow 2s linear infinite;
+            background: linear-gradient(90deg, #ff5252, #ffeb3b, #4caf50, #2196f3, #9c27b0, #ff5252);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            font-size: 1.05em;
+        }
+        @keyframes rainbow {
+            0% { filter: hue-rotate(0deg);}
+            100% { filter: hue-rotate(360deg);}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="rainbow-char" style="font-size: 4.5rem;">AI Agent Policy</h1>
+        <div id="chat-box"></div>
+        <div class="input-row">
+            <input type="text" id="prompt" placeholder="Nhập câu hỏi hoặc prompt..." onkeydown="if(event.key==='Enter'){sendPrompt();}">
+            <button id="send-btn" onclick="sendPrompt()">Gửi</button>
+        </div>
+    </div>
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const promptInput = document.getElementById('prompt');
+        const sendBtn = document.getElementById('send-btn');
+
+        function appendMessage(text, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = sender;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            if (sender === 'ai') {
+                let i = 0;
+                function typeWriter() {
+                    if (i <= text.length) {
+                        msgDiv.innerHTML = text.slice(0, i);
+                        chatBox.scrollTop = chatBox.scrollHeight;
+                        i++;
+                        setTimeout(typeWriter, 12); // tốc độ chạy, chỉnh nhỏ hơn để nhanh hơn
+                    }
+                }
+                typeWriter();
+            } else {
+                msgDiv.innerHTML = text;
+            }
+        }
+
+        function appendLoader() {
+            const loaderDiv = document.createElement('div');
+            loaderDiv.className = 'ai';
+            loaderDiv.innerHTML = `<div class="loader">
+                <span></span><span></span><span></span>
+            </div>`;
+            chatBox.appendChild(loaderDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendPrompt() {
+            const prompt = promptInput.value.trim();
+            if (!prompt) return;
+            appendMessage(prompt, 'user');
+            promptInput.value = '';
+            sendBtn.disabled = true;
+            appendLoader();
+            try {
+                const response = await fetch('http://localhost:5000/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: prompt })
+                });
+                const data = await response.json();
+                // Xóa loader trước khi thêm câu trả lời
+                const aiMsgs = chatBox.querySelectorAll('.ai');
+                if (aiMsgs.length) aiMsgs[aiMsgs.length-1].remove();
+                appendMessage(data.answer, 'ai');
+            } catch (e) {
+                const aiMsgs = chatBox.querySelectorAll('.ai');
+                if (aiMsgs.length) aiMsgs[aiMsgs.length-1].remove();
+                appendMessage('Lỗi kết nối tới server!', 'ai');
+            }
+            sendBtn.disabled = false;
+        }
+    // Thêm vào cuối <script>
+const container = document.querySelector('.container');
+let isDragging = false, dragStartX = 0, dragStartY = 0, containerStartX = 0, containerStartY = 0;
+
+container.addEventListener('mousedown', function(e) {
+    // Chỉ bắt đầu kéo khi nhấn chuột trái và không phải vào input hoặc button
+    if (e.button === 0 && !e.target.closest('input') && !e.target.closest('button')) {
+        isDragging = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        const rect = container.getBoundingClientRect();
+        containerStartX = rect.left;
+        containerStartY = rect.top;
+        document.body.style.userSelect = 'none';
+    }
+});
+
+document.addEventListener('mousemove', function(e) {
+    if (isDragging) {
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        container.style.left = (containerStartX + dx) + 'px';
+        container.style.top = (containerStartY + dy) + 'px';
+    }
+});
+
+document.addEventListener('mouseup', function() {
+    isDragging = false;
+    document.body.style.userSelect = '';
+});
+
+    </script>
+</body>
+</html>
