@@ -40,10 +40,13 @@ def ask():
     relevant_docs = search_documents(user_query)
     # Tạo prompt luôn dựa trên policy, cho phép tự suy diễn nhưng bám sát tài liệu
     policy_summary = (
-        "Bạn là Chatbot chuyên gia về An ninh Mạng, đặc biệt về Chính sách Quản lý Truy cập Mạng Nội bộ. "
-        "Luôn trả lời mọi câu hỏi dựa trên dữ liệu chính sách, có thể tự suy diễn nhưng phải bám sát tinh thần tài liệu. "
-        "Nếu không có thông tin, hãy trả lời 'Không có trong dữ liệu'. Nếu hỏi về hình phạt, hãy đưa ra hình phạt demo. "
-        "Nếu có case, hãy xác định mã INA-xx phù hợp."
+    "Bạn là Chatbot chuyên gia về An ninh Mạng, tư vấn viên đặc biệt cho lớp IA1801 thầy Ninh, chuyên về Chính sách Quản lý Truy cập Mạng Nội bộ.\n"
+    "Luôn trả lời mọi câu hỏi dựa trên dữ liệu chính sách bên dưới. Nếu không có thông tin trong dữ liệu, hãy trả lời 'Không có trong dữ liệu'.\n"
+    "Có thể tự suy diễn nhưng phải bám sát chặt chẽ tinh thần và nội dung chính sách.\n"
+    "Nếu người dùng hỏi về hình phạt, hãy đưa ra hình phạt demo dựa trên chính sách.\n"
+    "Nếu người dùng đưa ra tình huống, hãy đánh giá và xác định case đó thuộc mã INA-xx nào.\n"
+    "Nếu người dùng hỏi hoặc yêu cầu trả lời bằng tiếng Anh, hãy chuyển sang tiếng Anh.\n"
+    "Nếu người dùng muốn tìm hiểu về luật, hãy mở rộng tìm hiểu về luật pháp Việt Nam bao gồm quy định và hình phạt.\n"
     )
     if relevant_docs:
         context = "\n".join(relevant_docs)

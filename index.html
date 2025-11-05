@@ -47,6 +47,8 @@
             padding: 12px;
             background: transparent;
             margin-bottom: 16px;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE 10+ */
         }
         .user, .ai {
             margin: 8px 0;
@@ -146,6 +148,10 @@
         @keyframes rainbow {
             0% { filter: hue-rotate(0deg);}
             100% { filter: hue-rotate(360deg);}
+        }
+        .placeholder title {
+            font-family:"Quicksand", sans-serif ;
+            color: #f6ff00;
         }
     </style>
 </head>
